@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
@@ -10,21 +11,81 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.smap16e.group02.weatheraarhus.MainActivity"
     android:orientation="vertical">
-<RelativeLayout
-    android:layout_width="match_parent"
-    android:layout_height="0dp"
-    android:layout_weight="20">
-<!--Current weather goes here -->
-</RelativeLayout>
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="80">
+        android:layout_weight="20">
+        <!--Current weather goes here -->
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            app:srcCompat="?android:attr/actionModeCloseDrawable"
+            android:layout_centerVertical="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginStart="12dp"
+            android:id="@+id/imageView" />
+
+        <TextView
+            android:text="@string/current"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/imageView"
+            android:layout_toEndOf="@+id/imageView"
+            android:layout_marginStart="12dp"
+            android:textStyle="bold"
+            android:id="@+id/currentTextView" />
+
+        <TextView
+            android:text="n/a"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/descriptionTextView"
+            android:layout_centerVertical="true"
+            android:layout_alignStart="@+id/currentTextView" />
+
+        <TextView
+            android:text="n/a"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/tempTextView"
+            android:layout_alignBottom="@+id/imageView"
+            android:layout_alignStart="@+id/descriptionTextView" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginLeft="12dp"
+        android:layout_marginRight="12dp"
+        android:layout_marginBottom="12dp"
+        android:layout_weight="80"
+        android:id="@+id/pastRelativeLayout">
+        <TextView
+            android:text="@string/past_24_hours"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:id="@+id/pastTextView"
+            />
         <ListView
             android:id="@+id/main_lst_weatherhistory"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_below="@+id/pastTextView"
             />
+
     </RelativeLayout>
+    <android.support.design.widget.FloatingActionButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        app:fabSize="mini"
+        app:srcCompat="@android:drawable/stat_notify_sync"
+        android:id="@+id/floatingActionButton"
+        android:onClick="refresh"
+        android:layout_gravity="end"
+        android:layout_marginTop="-30dp"
+        />
 
 </LinearLayout>
