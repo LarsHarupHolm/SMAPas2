@@ -10,16 +10,18 @@ public class WeatherHistory {
     private int id;
     private int cityId;
     private String description;
+    private String iconCode;
     private double tempMetric;
     private long unixTime;
 
     public WeatherHistory() {}
 
-    public WeatherHistory(int id, int cityId, String description, double tempMetric, long unixTime, boolean inSeconds)
+    public WeatherHistory(int id, int cityId, String description, String iconCode, double tempMetric, long unixTime, boolean inSeconds)
     {
         this.id = id;
         this.cityId = cityId;
         this.description = description;
+        this.iconCode = iconCode;
         this.tempMetric = tempMetric;
         if(inSeconds) {
         this.unixTime = unixTime*1000;
@@ -28,11 +30,12 @@ public class WeatherHistory {
         }
     }
 
-    public WeatherHistory(int id, int cityId, String description, double tempMetric, Date dateUTC)
+    public WeatherHistory(int id, int cityId, String description, String iconCode, double tempMetric, Date dateUTC)
     {
         this.id = id;
         this.cityId = cityId;
         this.description = description;
+        this.iconCode = iconCode;
         this.tempMetric = tempMetric;
         this.unixTime = dateUTC.getTime();
     }
@@ -45,6 +48,9 @@ public class WeatherHistory {
 
     public void setDescription(String description){ if(this.description != description) {this.description = description;}}
     public String getDescription(){return this.description;}
+
+    public void setIconCode(String iconCode){ if(this.iconCode != iconCode) {this.iconCode = iconCode;}}
+    public String getIconCode(){return this.iconCode;}
 
     public void setTempMetric(double tempMetric){ if(this.tempMetric != tempMetric) {this.tempMetric = tempMetric;}}
     public double getTempMetric() {return this.tempMetric;}
