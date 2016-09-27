@@ -13,7 +13,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  * onUpgrade: https://thebhwgroup.com/blog/how-android-sqlite-onupgrade
  */
 
-public class DbHelper extends SQLiteOpenHelper{
+class DbHelper extends SQLiteOpenHelper{
 
     private static DbHelper sInstance;
 
