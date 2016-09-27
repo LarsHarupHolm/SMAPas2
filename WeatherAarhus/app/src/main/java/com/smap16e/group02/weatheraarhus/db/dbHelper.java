@@ -13,7 +13,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  * onUpgrade: https://thebhwgroup.com/blog/how-android-sqlite-onupgrade
  */
 
-class DbHelper extends SQLiteOpenHelper{
+public class DbHelper extends SQLiteOpenHelper{
 
     private static DbHelper sInstance;
 
@@ -81,7 +81,7 @@ class DbHelper extends SQLiteOpenHelper{
     }
 
     //region CRUD for WeatherHistory
-    public long insertWeatherHistory(WeatherHistory weatherHistory)
+    public static long insertWeatherHistory(WeatherHistory weatherHistory)
     {
         SQLiteDatabase db  = sInstance.getWritableDatabase();
         ContentValues values = new ContentValues();
