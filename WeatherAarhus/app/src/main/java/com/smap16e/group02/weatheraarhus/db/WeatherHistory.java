@@ -11,6 +11,7 @@ public class WeatherHistory {
     private int id;
     private int cityId;
     private String description;
+    private String iconCode;
     private double tempMetric;
     private long unixTime;
 
@@ -36,5 +37,8 @@ public class WeatherHistory {
 
     public void setUnixTime(long unixTime) {this.unixTime = unixTime;}
     public long getUnixTime(){return this.unixTime;}
+
+    public void setIconCode(String iconCode){ if(!Objects.equals(this.iconCode, iconCode)) {this.iconCode = iconCode;}}
+    public String getIconCode(){return this.iconCode;}
 
 }

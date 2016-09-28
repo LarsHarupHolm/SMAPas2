@@ -118,8 +118,6 @@ public class BackgroundService extends Service {
                             char[] buffer = new char[length];
                             reader.read(buffer);
                             result = new String(buffer);
-                        default:
-                            Log.e(TAG, "Got wrong status code: " + status);
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -156,6 +154,7 @@ public class BackgroundService extends Service {
             JSONArray weatherArray = jsonObject.getJSONArray("weather");
             JSONObject weather = weatherArray.getJSONObject(0);
             result.setDescription(weather.getString("main"));
+            result.setIconCode(weather.getString("icon"));
 
             JSONObject main = jsonObject.getJSONObject("main");
             result.setMetricTempFromKelvin(main.getDouble("temp"));

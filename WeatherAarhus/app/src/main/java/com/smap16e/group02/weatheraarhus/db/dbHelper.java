@@ -7,8 +7,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
 
-import com.smap16e.group02.weatheraarhus.MainActivity;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +32,7 @@ public class DbHelper extends SQLiteOpenHelper{
         private static final String COLUMN_DESCRIPTION = "description";
         private static final String COLUMN_TEMP_METRIC = "temperatureMetric";
         private static final String COLUMN_DATE = "date";
+        private static final String COLUMN_ICONCODE = "icon";
     }
 
     private static final String CREATE_TABLE_WEATHERHISTORY = "CREATE TABLE "
@@ -42,7 +41,8 @@ public class DbHelper extends SQLiteOpenHelper{
             + WeatherEntry.FOREIGN_COLUMN_CITY + " INTEGER,"
             + WeatherEntry.COLUMN_DESCRIPTION + " TEXT,"
             + WeatherEntry.COLUMN_TEMP_METRIC + " REAL,"
-            + WeatherEntry.COLUMN_DATE + " INTEGER" + ")";
+            + WeatherEntry.COLUMN_DATE + " INTEGER,"
+            + WeatherEntry.COLUMN_ICONCODE + " TEXT" + ")";
 
     private static final String DROP_TABLE_WEATHERHISTORY = "DROP TABLE IF EXISTS " + WeatherEntry.TABLE_WEATHERHISTORY;
     //endregion
@@ -57,8 +57,8 @@ public class DbHelper extends SQLiteOpenHelper{
     private static final String CREATE_TABLE_CITY = "CREATE TABLE "
             + CityEntry.TABLE_CITY + " ("
             + CityEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-            + CityEntry.COLUMN_NAME + "TEXT, "
-            + CityEntry.COLUMN_COUNTRY + "TEXT" + ")";
+            + CityEntry.COLUMN_NAME + " TEXT, "
+            + CityEntry.COLUMN_COUNTRY + " TEXT" + ")";
 
     private static final String DROP_TABLE_CITY = "DROP TABLE IF EXISTS " + CityEntry.TABLE_CITY;
     //endregion
@@ -104,6 +104,7 @@ public class DbHelper extends SQLiteOpenHelper{
         values.put(WeatherEntry.COLUMN_DESCRIPTION, weatherHistory.getDescription());
         values.put(WeatherEntry.COLUMN_TEMP_METRIC, weatherHistory.getTempMetric());
         values.put(WeatherEntry.COLUMN_DATE, weatherHistory.getUnixTime());
+        values.put(WeatherEntry.COLUMN_ICONCODE, weatherHistory.getIconCode());
 
         return db.insert(WeatherEntry.TABLE_WEATHERHISTORY, null, values);
     }
@@ -116,6 +117,7 @@ public class DbHelper extends SQLiteOpenHelper{
                 WeatherEntry.COLUMN_DATE,
                 WeatherEntry.COLUMN_DESCRIPTION,
                 WeatherEntry.COLUMN_TEMP_METRIC,
+                WeatherEntry.COLUMN_ICONCODE,
         };
 
         String sortOrder =
@@ -153,6 +155,7 @@ public class DbHelper extends SQLiteOpenHelper{
             result.setUnixTime(c.getLong(c.getColumnIndexOrThrow(WeatherEntry.COLUMN_DATE)));
             result.setDescription(c.getString(c.getColumnIndexOrThrow(WeatherEntry.COLUMN_DESCRIPTION)));
             result.setTempFromMetric(c.getDouble(c.getColumnIndexOrThrow(WeatherEntry.COLUMN_TEMP_METRIC)));
+            result.setIconCode(c.getString(c.getColumnIndexOrThrow(WeatherEntry.COLUMN_ICONCODE)));
 
             weatherHistoryList.add(result);
 
