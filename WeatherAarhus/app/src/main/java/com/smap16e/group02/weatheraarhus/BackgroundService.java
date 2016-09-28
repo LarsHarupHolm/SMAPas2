@@ -10,9 +10,12 @@ import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.google.gson.Gson;
 import com.smap16e.group02.weatheraarhus.db.DbHelper;
 import com.smap16e.group02.weatheraarhus.db.WeatherHistory;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,30 +27,43 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-//Kilder:
-//https://developer.android.com/training/basics/network-ops/connecting.html
-//http://stackoverflow.com/questions/10500775/parse-json-from-httpurlconnection-object
-//http://stackoverflow.com/questions/13626126/calling-a-method-every-10-minutes-in-android
+/**
+ * Created by Kaare on 22-09-2016.
+ * References:
+ *  https://developer.android.com/training/basics/network-ops/connecting.html
+ *  http://stackoverflow.com/questions/10500775/parse-json-from-httpurlconnection-object
+ *  http://stackoverflow.com/questions/13626126/calling-a-method-every-10-minutes-in-android
+ *  http://www.survivingwithandroid.com/2013/05/build-weather-app-json-http-android.html
+ */
 
 public class BackgroundService extends Service {
 
     private static final String TAG = "BackgroundService";
     public static final String BROADCAST_NEW_WEATHER_RESULT = "new weather result";
-    private static String OPENWEATHER_API_KEY = "&APPID={a44e3f6accfae7c2afaaeb6d4f34bfaf}";
-    private static String OPENWEATHER_CURRENTWEATHER = "api.openweathermap.org/data/2.5/weather?id=";
-    private Gson gson = new Gson();
+    private static String OPENWEATHER_API_KEY = "&APPID=a44e3f6accfae7c2afaaeb6d4f34bfaf";
+    private static String OPENWEATHER_CURRENTWEATHER = "http://api.openweathermap.org/data/2.5/weather?id=";
     private int aarhusCityId = 2624652;
+    private boolean started = false;
 
     public BackgroundService() {
-        Timer timer = new Timer ();
-        TimerTask hourlyTask = new TimerTask () {
-            @Override
-            public void run () {
-                fetchWeatherInfo(aarhusCityId);
-            }
-        };
+    }
 
-        timer.schedule (hourlyTask, 0l, 1000*60*30);   // Run every 30 minutes
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        if(!started) {
+            Timer timer = new Timer ();
+            TimerTask recurringTask = new TimerTask () {
+                @Override
+                public void run () {
+                    fetchWeatherInfo(aarhusCityId);
+                }
+            };
+
+            timer.schedule (recurringTask, 0l, 1000*60*30);   // Run every 30 minutes
+            started = true;
+        }
+
+        return START_STICKY;
     }
 
     @Override
@@ -56,7 +72,20 @@ public class BackgroundService extends Service {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    public void fetchWeatherInfo(int cityId){
+    public WeatherHistory getCurrentWeather(int cityId){
+        // Needs method in dbhelper
+
+        return null;
+    }
+
+    public List<WeatherHistory> getPastWeather(int cityId){
+
+        // Need a get method in dbHelper
+
+        return null;
+    }
+
+    private void fetchWeatherInfo(int cityId){
         ConnectivityManager connMgr = (ConnectivityManager)
                 getSystemService(Context.CONNECTIVITY_SERVICE);
 
@@ -66,14 +95,6 @@ public class BackgroundService extends Service {
         } else {
             Log.e(TAG, "Tried to get weather information. No connection");
         }
-        return;
-    }
-
-    public List<WeatherHistory> getPastWeather(int cityId){
-
-        // Need a get method in dbHelper
-
-        return null;
     }
 
     private void DownloadWeatherData(final String stringUrl) {
@@ -114,15 +135,38 @@ public class BackgroundService extends Service {
                 super.onPostExecute(result);
 
                 if(result != null){
-                    WeatherHistory history = gson.fromJson(result, WeatherHistory.class);
-                    DbHelper.insertWeatherHistory(history);
+                    WeatherHistory history = buildWeatherHistory(result);
 
-                    broadCastNewInformation();
+                    if(history != null){
+                        DbHelper.insertWeatherHistory(history);
+                        broadCastNewInformation();
+                    }
                 }
             }
         };
 
         task.execute();
+    }
+
+    private WeatherHistory buildWeatherHistory(String jsonString) {
+        WeatherHistory result = new WeatherHistory();
+        try {
+            JSONObject jsonObject = new JSONObject(jsonString);
+            result.setUnixTime(jsonObject.getLong("dt"));
+
+            JSONArray weatherArray = jsonObject.getJSONArray("weather");
+            JSONObject weather = weatherArray.getJSONObject(0);
+            result.setDescription(weather.getString("main"));
+
+            JSONObject main = jsonObject.getJSONObject("main");
+            result.setTempFromKelvin(main.getDouble("temp"));
+
+            result.setCityId(aarhusCityId);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return result;
     }
 
     private void broadCastNewInformation(){
@@ -131,5 +175,3 @@ public class BackgroundService extends Service {
         LocalBroadcastManager.getInstance(this).sendBroadcast(broadcastIntent);
     }
 }
-
-
