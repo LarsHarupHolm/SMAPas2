@@ -34,6 +34,7 @@ import java.util.TimerTask;
  *  http://stackoverflow.com/questions/10500775/parse-json-from-httpurlconnection-object
  *  http://stackoverflow.com/questions/13626126/calling-a-method-every-10-minutes-in-android
  *  http://www.survivingwithandroid.com/2013/05/build-weather-app-json-http-android.html
+ *  Demo from Lecture 7: ServicesDemo 16-2
  */
 
 public class BackgroundService extends Service {
@@ -73,16 +74,13 @@ public class BackgroundService extends Service {
     }
 
     public WeatherHistory getCurrentWeather(int cityId){
-        // Needs method in dbhelper
-
-        return null;
+        Context context = getApplicationContext();
+        return DbHelper.readCurrentWeatherHistory(context);
     }
 
     public List<WeatherHistory> getPastWeather(int cityId){
-
-        // Need a get method in dbHelper
-
-        return null;
+        Context context = getApplicationContext();
+        return DbHelper.readHistoricWeatherHistory(context);
     }
 
     private void fetchWeatherInfo(int cityId){
@@ -91,13 +89,13 @@ public class BackgroundService extends Service {
 
         NetworkInfo networkInfo = connMgr.getActiveNetworkInfo();
         if (networkInfo != null && networkInfo.isConnected()) {
-            DownloadWeatherData(OPENWEATHER_CURRENTWEATHER + cityId + OPENWEATHER_API_KEY);
+            DownloadCurrentWeatherData(OPENWEATHER_CURRENTWEATHER + cityId + OPENWEATHER_API_KEY);
         } else {
             Log.e(TAG, "Tried to get weather information. No connection");
         }
     }
 
-    private void DownloadWeatherData(final String stringUrl) {
+    private void DownloadCurrentWeatherData(final String stringUrl) {
 
         final AsyncTask<Object, Object, String> task = new AsyncTask<Object, Object, String>() {
             @Override
@@ -138,7 +136,8 @@ public class BackgroundService extends Service {
                     WeatherHistory history = buildWeatherHistory(result);
 
                     if(history != null){
-                        DbHelper.insertWeatherHistory(history);
+                        Context context = getApplicationContext();
+                        DbHelper.insertWeatherHistory(context, history);
                         broadCastNewInformation();
                     }
                 }
@@ -159,7 +158,7 @@ public class BackgroundService extends Service {
             result.setDescription(weather.getString("main"));
 
             JSONObject main = jsonObject.getJSONObject("main");
-            result.setTempFromKelvin(main.getDouble("temp"));
+            result.setMetricTempFromKelvin(main.getDouble("temp"));
 
             result.setCityId(aarhusCityId);
         } catch (JSONException e) {

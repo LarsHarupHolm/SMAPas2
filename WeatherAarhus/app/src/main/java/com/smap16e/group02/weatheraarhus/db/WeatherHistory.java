@@ -25,9 +25,13 @@ public class WeatherHistory {
     public void setDescription(String description){ if(!Objects.equals(this.description, description)) {this.description = description;}}
     public String getDescription(){return this.description;}
 
-    public void setTempFromKelvin(double tempKelvin){
+    public void setMetricTempFromKelvin(double tempKelvin){
         this.tempMetric = tempKelvin-273.15;
     }
+    public void setTempFromMetric(double tempMetric){
+        this.tempMetric = tempMetric;
+    }
+
     public double getTempMetric() {return this.tempMetric;}
 
     public void setUnixTime(long unixTime) {this.unixTime = unixTime;}
