@@ -72,8 +72,7 @@
             android:id="@+id/main_lst_weatherhistory"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@+id/pastTextView"
-            />
+            android:layout_below="@+id/pastTextView"/>
 
     </RelativeLayout>
     <android.support.design.widget.FloatingActionButton
@@ -83,7 +82,6 @@
         app:fabSize="mini"
         app:srcCompat="@android:drawable/stat_notify_sync"
         android:id="@+id/floatingActionButton"
-        android:onClick="refresh"
         android:layout_gravity="end"
         android:layout_marginTop="-30dp"
         />

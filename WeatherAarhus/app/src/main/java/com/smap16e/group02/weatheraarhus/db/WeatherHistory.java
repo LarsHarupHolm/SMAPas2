@@ -1,6 +1,7 @@
 package com.smap16e.group02.weatheraarhus.db;
 
 import java.util.Date;
+import java.util.Locale;
 import java.util.Objects;
 
 /**
@@ -37,6 +38,10 @@ public class WeatherHistory {
 
     public void setUnixTime(long unixTime) {this.unixTime = unixTime;}
     public long getUnixTime(){return this.unixTime;}
+
+    public Date getDate(){return new java.util.Date(this.unixTime*1000);}
+
+    public String getTempString() { return String.format(Locale.getDefault(), "%.2f", getTempMetric()) + " °C"; }
 
     public void setIconCode(String iconCode){ if(!Objects.equals(this.iconCode, iconCode)) {this.iconCode = iconCode;}}
     public String getIconCode(){return this.iconCode;}

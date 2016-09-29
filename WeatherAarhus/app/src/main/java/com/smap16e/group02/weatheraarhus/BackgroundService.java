@@ -41,9 +41,9 @@ public class BackgroundService extends Service {
 
     private static final String TAG = "BackgroundService";
     public static final String BROADCAST_NEW_WEATHER_RESULT = "new weather result";
+    public static final int aarhusCityId = 2624652;
     private static String OPENWEATHER_API_KEY = "&APPID=a44e3f6accfae7c2afaaeb6d4f34bfaf";
     private static String OPENWEATHER_CURRENTWEATHER = "http://api.openweathermap.org/data/2.5/weather?id=";
-    private int aarhusCityId = 2624652;
     private boolean started = false;
 
     public BackgroundService() {
@@ -83,7 +83,7 @@ public class BackgroundService extends Service {
         return DbHelper.readHistoricWeatherHistory(context);
     }
 
-    private void fetchWeatherInfo(int cityId){
+    public void fetchWeatherInfo(int cityId){
         ConnectivityManager connMgr = (ConnectivityManager)
                 getSystemService(Context.CONNECTIVITY_SERVICE);
 
