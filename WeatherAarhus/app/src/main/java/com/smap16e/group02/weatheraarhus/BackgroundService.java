@@ -60,7 +60,7 @@ public class BackgroundService extends Service {
                 }
             };
 
-            timer.schedule (recurringTask, 0l, 1000*60*30);   // Run every 30 minutes
+            timer.schedule (recurringTask, 0l, 1000*15*1);   // Run every 30 minutes
             started = true;
         }
 

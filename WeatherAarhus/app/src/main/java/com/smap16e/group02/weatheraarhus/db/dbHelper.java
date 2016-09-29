@@ -96,7 +96,7 @@ public class DbHelper extends SQLiteOpenHelper{
         };
 
         String sortOrder =
-                WeatherEntry._ID + " DESC";
+                WeatherEntry.COLUMN_DATE + " DESC";
 
         Cursor c = db.query(
                 WeatherEntry.TABLE_WEATHERHISTORY,
@@ -112,11 +112,19 @@ public class DbHelper extends SQLiteOpenHelper{
     }
 
     public static WeatherHistory readCurrentWeatherHistory(Context context){
-        return parseToWeatherHistory(readWeatherHistory(context)).get(0);
+        Cursor cursor = readWeatherHistory(context);
+        if (cursor.getCount() > 0) {
+            return parseToWeatherHistory(cursor).get(0);
+        }
+        return new WeatherHistory();
     }
 
     public static List<WeatherHistory> readHistoricWeatherHistory(Context context){
-        return parseToWeatherHistory(readWeatherHistory(context)).subList(1,49);
+        Cursor cursor = readWeatherHistory(context);
+        if (cursor.getCount() > 0) {
+            return parseToWeatherHistory(cursor);
+        }
+        return new ArrayList<>();
     }
 
     //Delete weatherHistory

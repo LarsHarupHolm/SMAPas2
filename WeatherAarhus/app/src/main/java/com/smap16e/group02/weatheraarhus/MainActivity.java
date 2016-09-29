@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -29,9 +30,14 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -47,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         startBackgroundService();
         Toast.makeText(MainActivity.this, "Background service started", Toast.LENGTH_LONG).show();
@@ -65,15 +72,16 @@ public class MainActivity extends AppCompatActivity {
         listView = (ListView) findViewById(R.id.main_lst_weatherhistory);
 
         weatherRecords = new ArrayList<>();
-//        WeatherHistory w1 = new WeatherHistory();
-//        w1.setIconCode("10n"); w1.setDescription("SUPER NICE WEATHER"); w1.setUnixTime(1475094981); w1.setTempFromMetric(23);
-//        WeatherHistory w2 = new WeatherHistory();
-//        w2.setIconCode("02d"); w2.setDescription("KINDA OK WEATHER"); w2.setUnixTime(1475091981); w2.setTempFromMetric(18);
-//        weatherRecords.add(w1);
-//        weatherRecords.add(w2);
-        WeatherHistory[] weatherRecordsArray = new WeatherHistory[weatherRecords.size()];
-        listView.setAdapter(new HistoryArrayAdapter(this, weatherRecords.toArray(weatherRecordsArray)));
-        
+
+        updateWeatherRecordsList();
+
+        setCurrentWeather(DbHelper.readCurrentWeatherHistory(getApplicationContext()));
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+
+        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -85,31 +93,40 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
     }
 
+
     private BroadcastReceiver onBackgroundServiceResult = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             Toast.makeText(MainActivity.this, "Received new weather info from service", Toast.LENGTH_LONG).show();
             WeatherHistory curWeather = DbHelper.readCurrentWeatherHistory(context);
             setCurrentWeather(curWeather);
+            updateWeatherRecordsList();
         }
     };
 
     private void setCurrentWeather(WeatherHistory weather) {
         descriptionTextView.setText(weather.getDescription());
         tempTextView.setText(weather.getTempString());
+        new LoadImage(iconImageView).execute(weather.getIconCode());
+    }
 
-        if (currentWeather != null) {
-            //Remove too old historyRecords
-            Iterator<WeatherHistory> iterator = weatherRecords.iterator();
-            while (iterator.hasNext()) {
-                WeatherHistory cur = iterator.next();
-                if (cur.getDate().before(new Date(System.currentTimeMillis() - (1000 * 60 * 60 * 24)))) { //if the date is before 24 hours ago, remove it
-                    iterator.remove();
-                }
+    private void updateWeatherRecordsList()
+    {
+        //Remove too old historyRecords
+        List<WeatherHistory> weatherHistoryList = DbHelper.readHistoricWeatherHistory(getApplicationContext());
+        weatherRecords.clear();
+        weatherRecords.addAll(weatherHistoryList);
+        Iterator<WeatherHistory> iterator = weatherRecords.iterator();
+        while (iterator.hasNext()) {
+            WeatherHistory cur = iterator.next();
+            if (cur.getCalendar().before(new Date(System.currentTimeMillis() - (1000 * 60 * 60 * 24)))) { //if the date is before 24 hours ago, remove it
+                iterator.remove();
             }
-            weatherRecords.add(currentWeather);
         }
-        currentWeather = weather;
+        if (listView != null) {
+            WeatherHistory[] weatherRecordsArray = new WeatherHistory[weatherRecords.size()];
+            listView.setAdapter(new HistoryArrayAdapter(this, weatherRecords.toArray(weatherRecordsArray)));
+        }
     }
 
     public void refresh() {
@@ -122,9 +139,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class HistoryArrayAdapter extends ArrayAdapter<WeatherHistory> {
-
-        ImageView image;
-
         public HistoryArrayAdapter(Context context, WeatherHistory[] records) {
             super(context, R.layout.weather_listview, records);
         }
@@ -143,14 +157,14 @@ public class MainActivity extends AppCompatActivity {
             WeatherHistory w = getItem(position);
 
             if (w != null) {
-                image = (ImageView) v.findViewById(R.id.hist_imageView);
+                ImageView image = (ImageView) v.findViewById(R.id.hist_imageView);
                 TextView description = (TextView) v.findViewById(R.id.hist_descriptionTextView);
                 TextView date = (TextView) v.findViewById(R.id.dateTextView);
                 TextView temp = (TextView) v.findViewById(R.id.hist_tempTextView);
                 TextView time = (TextView) v.findViewById(R.id.timeTextView);
 
                 if (image != null) {
-                    new LoadImage().execute("http://openweathermap.org/img/w/"+w.getIconCode()+".png");
+                    new LoadImage(image).execute(w.getIconCode());
                 }
 
                 if (description != null) {
@@ -158,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if (date != null) {
-                    date.setText(w.getDate().getDay() + "-" + w.getDate().getMonth() + "-" + w.getDate().getYear()); //Refactor this deprecated shit
+                    date.setText(new SimpleDateFormat("dd/MM/yyyy").format(w.getCalendar().getTime()));
                 }
 
                 if (temp != null) {
@@ -166,32 +180,37 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if (time != null) {
-                    time.setText(w.getDate().getHours()+":"+w.getDate().getMinutes());
+                    time.setText(new SimpleDateFormat("HH:mm:ss").format(w.getCalendar().getTime()));
                 }
             }
 
             return v;
         }
-        private class LoadImage extends AsyncTask<String, String, Bitmap> {
 
-            protected Bitmap doInBackground(String... args) {
-                Bitmap bitmap = null;
-                try {
-                    bitmap = BitmapFactory.decodeStream((InputStream)new URL(args[0]).getContent());
+    }
+    private class LoadImage extends AsyncTask<String, String, Bitmap> {
+        private ImageView imageView;
+        public LoadImage(ImageView imageView)
+        {
+            this.imageView = imageView;
+        }
+        protected Bitmap doInBackground(String... args) {
+            Bitmap bitmap = null;
+            try {
+                bitmap = BitmapFactory.decodeStream((InputStream)new URL("http://openweathermap.org/img/w/"+args[0]+".png").getContent());
 
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return bitmap;
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+            return bitmap;
+        }
 
-            protected void onPostExecute(Bitmap bitmap) {
-                if(bitmap != null && image != null){
-                    image.setImageBitmap(bitmap);
+        protected void onPostExecute(Bitmap bitmap) {
+            if(bitmap != null && imageView != null){
+                imageView.setImageBitmap(bitmap);
 
-                }else{
-                    Toast.makeText(MainActivity.this, "Image Does Not exist or Network Error", Toast.LENGTH_SHORT).show();
-                }
+            }else{
+                Toast.makeText(MainActivity.this, "Image Does Not exist or Network Error", Toast.LENGTH_SHORT).show();
             }
         }
     }

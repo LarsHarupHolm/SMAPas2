@@ -1,5 +1,6 @@
 package com.smap16e.group02.weatheraarhus.db;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
@@ -39,7 +40,11 @@ public class WeatherHistory {
     public void setUnixTime(long unixTime) {this.unixTime = unixTime;}
     public long getUnixTime(){return this.unixTime;}
 
-    public Date getDate(){return new java.util.Date(this.unixTime*1000);}
+    public Calendar getCalendar(){
+        Calendar cal = Calendar.getInstance();
+        cal.setTimeInMillis(this.unixTime*1000L);
+        return cal;
+    }
 
     public String getTempString() { return String.format(Locale.getDefault(), "%.2f", getTempMetric()) + " °C"; }
 
