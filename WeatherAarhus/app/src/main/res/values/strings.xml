@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Weather Aarhus Group 02</string>
+    <string name="current">CURRENT:</string>
+    <string name="past_24_hours">PAST 24 HOURS:</string>
 </resources>

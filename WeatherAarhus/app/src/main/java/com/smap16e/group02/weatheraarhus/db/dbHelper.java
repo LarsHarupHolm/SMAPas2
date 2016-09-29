@@ -5,6 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.provider.BaseColumns;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import java.util.ArrayList;
 
@@ -22,38 +26,44 @@ public class DbHelper extends SQLiteOpenHelper{
 
     private static final String DATABASE_NAME = "Group02";
     private static final int DATABASE_VERSION = 1;
-    private static final String COLUMN_ID = "id";
 
     //region WeatherHistory Table constants
-    private static final String TABLE_WEATHERHISTORY = "WeatherHistory";
-    private static final String FOREIGN_COLUMN_CITY = "cityId";
-    private static final String COLUMN_DESCRIPTION = "description";
-    private static final String COLUMN_ICONCODE = "iconCode";
-    private static final String COLUMN_TEMP_METRIC = "temperatureMetric";
-    private static final String COLUMN_DATE = "date";
+
+    private static class WeatherEntry implements BaseColumns{
+        private static final String TABLE_WEATHERHISTORY = "WeatherHistory";
+        private static final String FOREIGN_COLUMN_CITY = "cityId";
+        private static final String COLUMN_DESCRIPTION = "description";
+        private static final String COLUMN_TEMP_METRIC = "temperatureMetric";
+        private static final String COLUMN_DATE = "date";
+        private static final String COLUMN_ICONCODE = "icon";
+    }
 
     private static final String CREATE_TABLE_WEATHERHISTORY = "CREATE TABLE "
-            + TABLE_WEATHERHISTORY + " (" + COLUMN_ID + " INTEGER PRIMARY KEY,"
-            + FOREIGN_COLUMN_CITY + " INTEGER,"
-            + COLUMN_DESCRIPTION + " TEXT,"
-            + COLUMN_ICONCODE + " TEXT,"
-            + COLUMN_TEMP_METRIC + " REAL,"
-            + COLUMN_DATE + " INTEGER" + ")";
+            + WeatherEntry.TABLE_WEATHERHISTORY + " ("
+            + WeatherEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+            + WeatherEntry.FOREIGN_COLUMN_CITY + " INTEGER,"
+            + WeatherEntry.COLUMN_DESCRIPTION + " TEXT,"
+            + WeatherEntry.COLUMN_TEMP_METRIC + " REAL,"
+            + WeatherEntry.COLUMN_DATE + " INTEGER,"
+            + WeatherEntry.COLUMN_ICONCODE + " TEXT" + ")";
 
-    private static final String DROP_TABLE_WEATHERHISTORY = "DROP TABLE IF EXISTS " + TABLE_WEATHERHISTORY;
+    private static final String DROP_TABLE_WEATHERHISTORY = "DROP TABLE IF EXISTS " + WeatherEntry.TABLE_WEATHERHISTORY;
     //endregion
 
     //region City Table constants
-    private static final String TABLE_CITY = "City";
-    private static final String COLUMN_NAME = "name";
-    private static final String COLUMN_COUNTRY = "country";
+    private static class CityEntry implements BaseColumns{
+        private static final String TABLE_CITY = "City";
+        private static final String COLUMN_NAME = "name";
+        private static final String COLUMN_COUNTRY = "country";
+    }
 
     private static final String CREATE_TABLE_CITY = "CREATE TABLE "
-            + TABLE_CITY + " (" + COLUMN_ID + " INTEGER PRIMARY KEY,"
-            + COLUMN_NAME + "TEXT, "
-            + COLUMN_COUNTRY + "TEXT" + ")";
+            + CityEntry.TABLE_CITY + " ("
+            + CityEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+            + CityEntry.COLUMN_NAME + " TEXT, "
+            + CityEntry.COLUMN_COUNTRY + " TEXT" + ")";
 
-    private static final String DROP_TABLE_CITY = "DROP TABLE IF EXISTS " + TABLE_CITY;
+    private static final String DROP_TABLE_CITY = "DROP TABLE IF EXISTS " + CityEntry.TABLE_CITY;
     //endregion
 
     //region Singleton
@@ -69,6 +79,7 @@ public class DbHelper extends SQLiteOpenHelper{
     }
     //endregion
 
+    //region Overrides
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_TABLE_WEATHERHISTORY);
@@ -84,23 +95,57 @@ public class DbHelper extends SQLiteOpenHelper{
     public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         super.onDowngrade(db, oldVersion, newVersion);
     }
+    //endregion
 
     //region CRUD for WeatherHistory
 
-    //Returns the row-id of inserted row (-1 if error)!
-    //May not be equivalent to the actual ID of the inserted entry.
-    public long insertWeatherHistory(WeatherHistory weatherHistory)
+    public static long insertWeatherHistory(Context context, WeatherHistory weatherHistory)
     {
-        SQLiteDatabase db  = sInstance.getWritableDatabase();
+        DbHelper helper = new DbHelper(context);
+        SQLiteDatabase db = helper.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COLUMN_ID, weatherHistory.getId());
-        values.put(FOREIGN_COLUMN_CITY, weatherHistory.getCityId());
-        values.put(COLUMN_DESCRIPTION, weatherHistory.getDescription());
-        values.put(COLUMN_ICONCODE, weatherHistory.getIconCode());
-        values.put(COLUMN_TEMP_METRIC, weatherHistory.getTempMetric());
-        values.put(COLUMN_DATE, weatherHistory.getUnixTime());
+        values.put(WeatherEntry.FOREIGN_COLUMN_CITY, weatherHistory.getCityId());
+        values.put(WeatherEntry.COLUMN_DESCRIPTION, weatherHistory.getDescription());
+        values.put(WeatherEntry.COLUMN_TEMP_METRIC, weatherHistory.getTempMetric());
+        values.put(WeatherEntry.COLUMN_DATE, weatherHistory.getUnixTime());
+        values.put(WeatherEntry.COLUMN_ICONCODE, weatherHistory.getIconCode());
 
-        return db.insert(TABLE_WEATHERHISTORY, null, values);
+        return db.insert(WeatherEntry.TABLE_WEATHERHISTORY, null, values);
+    }
+
+    private static Cursor readWeatherHistory(Context context){
+        DbHelper helper = new DbHelper(context);
+        SQLiteDatabase db = helper.getReadableDatabase();
+
+        String[] projection = {
+                WeatherEntry.COLUMN_DATE,
+                WeatherEntry.COLUMN_DESCRIPTION,
+                WeatherEntry.COLUMN_TEMP_METRIC,
+                WeatherEntry.COLUMN_ICONCODE,
+        };
+
+        String sortOrder =
+                WeatherEntry._ID + " DESC";
+
+        Cursor c = db.query(
+                WeatherEntry.TABLE_WEATHERHISTORY,
+                projection,
+                null,
+                null,
+                null,
+                null,
+                sortOrder
+        );
+
+        return c;
+    }
+
+    public static WeatherHistory readCurrentWeatherHistory(Context context){
+        return parseToWeatherHistory(readWeatherHistory(context)).get(0);
+    }
+
+    public static List<WeatherHistory> readHistoricWeatherHistory(Context context){
+        return parseToWeatherHistory(readWeatherHistory(context)).subList(1,49);
     }
 
     //Delete weatherHistory
@@ -221,16 +266,38 @@ public class DbHelper extends SQLiteOpenHelper{
     }
     //endregion
 
+    private static List<WeatherHistory> parseToWeatherHistory(Cursor c){
+        List<WeatherHistory> weatherHistoryList = new ArrayList<>();
+        c.moveToFirst();
+
+        boolean endOfList = false;
+        while(!endOfList){
+            WeatherHistory result = new WeatherHistory();
+            result.setUnixTime(c.getLong(c.getColumnIndexOrThrow(WeatherEntry.COLUMN_DATE)));
+            result.setDescription(c.getString(c.getColumnIndexOrThrow(WeatherEntry.COLUMN_DESCRIPTION)));
+            result.setTempFromMetric(c.getDouble(c.getColumnIndexOrThrow(WeatherEntry.COLUMN_TEMP_METRIC)));
+            result.setIconCode(c.getString(c.getColumnIndexOrThrow(WeatherEntry.COLUMN_ICONCODE)));
+
+            weatherHistoryList.add(result);
+
+            if(c.isLast())
+                endOfList = true;
+            else
+                c.moveToNext();
+        }
+
+        return weatherHistoryList;
+    }
+
     //region CRUD for City
     public long insertCity(City city)
     {
         SQLiteDatabase db  = sInstance.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COLUMN_ID, city.getId());
-        values.put(COLUMN_NAME, city.getName());
-        values.put(COLUMN_COUNTRY, city.getCountry());
+        values.put(CityEntry.COLUMN_NAME, city.getName());
+        values.put(CityEntry.COLUMN_COUNTRY, city.getCountry());
 
-        return db.insert(TABLE_CITY, null, values);
+        return db.insert(CityEntry.TABLE_CITY, null, values);
     }
 
 
