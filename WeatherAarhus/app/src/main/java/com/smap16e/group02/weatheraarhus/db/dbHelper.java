@@ -42,7 +42,9 @@ public class DbHelper extends SQLiteOpenHelper{
             + WeatherEntry.COLUMN_DESCRIPTION + " TEXT,"
             + WeatherEntry.COLUMN_TEMP_METRIC + " REAL,"
             + WeatherEntry.COLUMN_DATE + " INTEGER,"
-            + WeatherEntry.COLUMN_ICONCODE + " TEXT" + ")";
+            + WeatherEntry.COLUMN_ICONCODE + " TEXT,"
+            + " UNIQUE(" + WeatherEntry.COLUMN_DATE + ") ON CONFLICT REPLACE)";
+
 
     //endregion
 

@@ -1,13 +1,16 @@
 package com.smap16e.group02.weatheraarhus;
 
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
@@ -16,25 +19,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.smap16e.group02.weatheraarhus.db.DbHelper;
 import com.smap16e.group02.weatheraarhus.db.WeatherHistory;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -47,15 +42,38 @@ public class MainActivity extends AppCompatActivity {
     private ListView listView;
 
     private ArrayList<WeatherHistory> weatherRecords;
-    private WeatherHistory currentWeather;
+    private BackgroundService mBoundService;
+    private boolean mIsBound = false;
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mBoundService = ((BackgroundService.LocalBinder) service).getService();
+        }
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mBoundService = null;
+        }
+    };
+
+    void doBindService() {
+        // Establish a connection with the service.  We use an explicit
+        // class name because we want a specific service implementation that
+        // we know will be running in our own process (and thus won't be
+        // supporting component replacement by other applications).
+        bindService(new Intent(MainActivity.this,
+                BackgroundService.class), mConnection, Context.BIND_AUTO_CREATE);
+        mIsBound = true;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         startBackgroundService();
+        doBindService();
+
         Toast.makeText(MainActivity.this, "Background service started", Toast.LENGTH_LONG).show();
 
         floatingActionButton = (FloatingActionButton) findViewById(R.id.floatingActionButton);
@@ -75,12 +93,22 @@ public class MainActivity extends AppCompatActivity {
 
         updateWeatherRecordsList();
 
-        setCurrentWeather(DbHelper.readCurrentWeatherHistory(getApplicationContext()));
+        if(mBoundService != null)
+            setCurrentWeather(mBoundService.getCurrentWeather());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mIsBound) {
+            unbindService(mConnection);
+            mIsBound = false;
+        }
+
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-
         super.onSaveInstanceState(outState);
     }
 
@@ -98,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             Toast.makeText(MainActivity.this, "Received new weather info from service", Toast.LENGTH_LONG).show();
-            WeatherHistory curWeather = DbHelper.readCurrentWeatherHistory(context);
+            WeatherHistory curWeather = mBoundService.getCurrentWeather();
             setCurrentWeather(curWeather);
             updateWeatherRecordsList();
         }
@@ -113,7 +141,10 @@ public class MainActivity extends AppCompatActivity {
     private void updateWeatherRecordsList()
     {
         //Remove too old historyRecords
-        List<WeatherHistory> weatherHistoryList = DbHelper.readHistoricWeatherHistory(getApplicationContext());
+        if(mBoundService == null)
+            return;
+
+        List<WeatherHistory> weatherHistoryList = mBoundService.getPastWeather();
         weatherRecords.clear();
         weatherRecords.addAll(weatherHistoryList);
         Iterator<WeatherHistory> iterator = weatherRecords.iterator();
@@ -130,7 +161,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void refresh() {
-        //Get the service to fetch weather from api and update the currentWeather
+        mBoundService.fetchWeatherInfo();
+        Toast.makeText(MainActivity.this, "Checking for new weather info...", Toast.LENGTH_SHORT).show();
     }
 
     private void startBackgroundService(){
