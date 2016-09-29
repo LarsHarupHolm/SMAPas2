@@ -66,6 +66,8 @@ public class DbHelper extends SQLiteOpenHelper{
     private static final String DROP_TABLE_CITY = "DROP TABLE IF EXISTS " + CityEntry.TABLE_CITY;
     //endregion
 
+
+
     //region Singleton
     public static synchronized DbHelper getInstance(Context context) {
         if(sInstance == null) {
@@ -152,10 +154,10 @@ public class DbHelper extends SQLiteOpenHelper{
     //Returns the number of rows deleted (SHOULD BE 0 OR 1)
     public int deleteWeatherHistory(WeatherHistory weatherHistory) {
         SQLiteDatabase db = sInstance.getWritableDatabase();
-        String whereClause = COLUMN_ID + " = ?";
+        String whereClause = WeatherEntry._ID + " = ?";
         String[] whereArgs = {String.valueOf(weatherHistory.getId())};
 
-        return db.delete(TABLE_WEATHERHISTORY, whereClause, whereArgs);
+        return db.delete(WeatherEntry.TABLE_WEATHERHISTORY, whereClause, whereArgs);
     }
 
     //Used to flush history for a city.
@@ -163,10 +165,10 @@ public class DbHelper extends SQLiteOpenHelper{
     public int deleteWeatherHistoriesForCity(int cityId)
     {
         SQLiteDatabase db = sInstance.getWritableDatabase();
-        String whereClause = FOREIGN_COLUMN_CITY + " = ?";
+        String whereClause = WeatherEntry.FOREIGN_COLUMN_CITY + " = ?";
         String[] whereArgs = {String.valueOf(cityId)};
 
-        return db.delete(TABLE_WEATHERHISTORY, whereClause, whereArgs);
+        return db.delete(WeatherEntry.TABLE_WEATHERHISTORY, whereClause, whereArgs);
     }
 
     //Updates WeatherHistory
@@ -174,17 +176,17 @@ public class DbHelper extends SQLiteOpenHelper{
     public int updateWeatherHistory(WeatherHistory weatherHistory){
         SQLiteDatabase db = sInstance.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(FOREIGN_COLUMN_CITY, weatherHistory.getCityId());
-        values.put(COLUMN_DESCRIPTION, weatherHistory.getDescription());
-        values.put(COLUMN_ICONCODE, weatherHistory.getIconCode());
+        values.put(WeatherEntry.FOREIGN_COLUMN_CITY, weatherHistory.getCityId());
+        values.put(WeatherEntry.COLUMN_DESCRIPTION, weatherHistory.getDescription());
+        values.put(WeatherEntry.COLUMN_ICONCODE, weatherHistory.getIconCode());
         //Todo: Should be able to update the date and value of measurement?
         //values.put(COLUMN_TEMP_METRIC, weatherHistory.getTempMetric());
         //values.put(COLUMN_DATE, weatherHistory.getUnixTime());
 
-        String whereClause = COLUMN_ID + " = ?";
+        String whereClause = WeatherEntry._ID + " = ?";
         String[] whereArgs = {String.valueOf(weatherHistory.getId())};
 
-        return db.update(TABLE_WEATHERHISTORY, values, whereClause, whereArgs);
+        return db.update(WeatherEntry.TABLE_WEATHERHISTORY, values, whereClause, whereArgs);
     }
 
     //gets and returns the weatherHistory with id.
@@ -193,18 +195,18 @@ public class DbHelper extends SQLiteOpenHelper{
         SQLiteDatabase db = sInstance.getReadableDatabase();
 
         String[] projection = {
-                COLUMN_ID,
-                FOREIGN_COLUMN_CITY,
-                COLUMN_DESCRIPTION,
-                COLUMN_ICONCODE,
-                COLUMN_TEMP_METRIC,
-                COLUMN_DATE
+                WeatherEntry._ID,
+                WeatherEntry.FOREIGN_COLUMN_CITY,
+                WeatherEntry.COLUMN_DESCRIPTION,
+                WeatherEntry.COLUMN_ICONCODE,
+                WeatherEntry.COLUMN_TEMP_METRIC,
+                WeatherEntry.COLUMN_DATE
         };
 
-        String whereClause = COLUMN_ID + " = ?";
+        String whereClause = WeatherEntry._ID + " = ?";
         String[] whereArgs = {String.valueOf(id)};
 
-        Cursor cursor = db.query(TABLE_WEATHERHISTORY,
+        Cursor cursor = db.query(WeatherEntry.TABLE_WEATHERHISTORY,
                 projection,
                 whereClause,
                 whereArgs,
@@ -236,20 +238,20 @@ public class DbHelper extends SQLiteOpenHelper{
         SQLiteDatabase db = sInstance.getReadableDatabase();
 
         String[] projection = {
-                COLUMN_ID,
-                FOREIGN_COLUMN_CITY,
-                COLUMN_DESCRIPTION,
-                COLUMN_ICONCODE,
-                COLUMN_TEMP_METRIC,
-                COLUMN_DATE
+                WeatherEntry._ID,
+                WeatherEntry.FOREIGN_COLUMN_CITY,
+                WeatherEntry.COLUMN_DESCRIPTION,
+                WeatherEntry.COLUMN_ICONCODE,
+                WeatherEntry.COLUMN_TEMP_METRIC,
+                WeatherEntry.COLUMN_DATE
         };
 
-        String whereClause = FOREIGN_COLUMN_CITY + " = ?";
+        String whereClause = WeatherEntry.FOREIGN_COLUMN_CITY + " = ?";
         String[] whereArgs = {String.valueOf(cityId)};
 
-        String orderBy = COLUMN_ID + " DESC";
+        String orderBy = WeatherEntry._ID + " DESC";
 
-        Cursor cursor = db.query(TABLE_WEATHERHISTORY,
+        Cursor cursor = db.query(WeatherEntry.TABLE_WEATHERHISTORY,
                 projection,
                 whereClause,
                 whereArgs,
