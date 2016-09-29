@@ -17,16 +17,6 @@ public class WeatherHistory {
 
     public WeatherHistory() {}
 
-    public WeatherHistory(int id, int cityId, String description, String iconCode, double tempMetric, long unixTime, boolean inSeconds) {
-        this.id = id;
-        this.cityId = cityId;
-        this.description = description;
-        this.iconCode = iconCode;
-        this.tempMetric = tempMetric;
-        if (inSeconds) {
-            this.unixTime = unixTime * 1000;
-        }
-    }
     public void setId(int id) {this.id = id;}
     public int getId(){return this.id;}
 
