@@ -10,6 +10,8 @@ import android.provider.BaseColumns;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.ArrayList;
+
 /**
  * Created by Lars on 22-09-2016.
  * References:
@@ -19,13 +21,11 @@ import java.util.List;
  */
 
 public class DbHelper extends SQLiteOpenHelper{
-
-    private static DbHelper sInstance;
-
     private static final String DATABASE_NAME = "Group02";
     private static final int DATABASE_VERSION = 1;
 
     //region WeatherHistory Table constants
+
     private static class WeatherEntry implements BaseColumns{
         private static final String TABLE_WEATHERHISTORY = "WeatherHistory";
         private static final String FOREIGN_COLUMN_CITY = "cityId";
@@ -44,43 +44,17 @@ public class DbHelper extends SQLiteOpenHelper{
             + WeatherEntry.COLUMN_DATE + " INTEGER,"
             + WeatherEntry.COLUMN_ICONCODE + " TEXT" + ")";
 
-    private static final String DROP_TABLE_WEATHERHISTORY = "DROP TABLE IF EXISTS " + WeatherEntry.TABLE_WEATHERHISTORY;
     //endregion
 
-    //region City Table constants
-    private static class CityEntry implements BaseColumns{
-        private static final String TABLE_CITY = "City";
-        private static final String COLUMN_NAME = "name";
-        private static final String COLUMN_COUNTRY = "country";
-    }
-
-    private static final String CREATE_TABLE_CITY = "CREATE TABLE "
-            + CityEntry.TABLE_CITY + " ("
-            + CityEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
-            + CityEntry.COLUMN_NAME + " TEXT, "
-            + CityEntry.COLUMN_COUNTRY + " TEXT" + ")";
-
-    private static final String DROP_TABLE_CITY = "DROP TABLE IF EXISTS " + CityEntry.TABLE_CITY;
-    //endregion
-
-    //region Singleton
-    public static synchronized DbHelper getInstance(Context context) {
-        if(sInstance == null) {
-            sInstance = new DbHelper(context.getApplicationContext());
-        }
-        return sInstance;
-    }
     private DbHelper(Context context)
     {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
-    //endregion
 
     //region Overrides
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(CREATE_TABLE_WEATHERHISTORY);
-        db.execSQL(CREATE_TABLE_CITY);
     }
 
     @Override
@@ -95,6 +69,7 @@ public class DbHelper extends SQLiteOpenHelper{
     //endregion
 
     //region CRUD for WeatherHistory
+
     public static long insertWeatherHistory(Context context, WeatherHistory weatherHistory)
     {
         DbHelper helper = new DbHelper(context);
@@ -143,7 +118,17 @@ public class DbHelper extends SQLiteOpenHelper{
     public static List<WeatherHistory> readHistoricWeatherHistory(Context context){
         return parseToWeatherHistory(readWeatherHistory(context)).subList(1,49);
     }
-    //endregion
+
+    //Delete weatherHistory
+    //Returns the number of rows deleted (SHOULD BE 0 OR 1)
+    public int deleteWeatherHistory(Context context, WeatherHistory weatherHistory) {
+        DbHelper helper = new DbHelper(context);
+        SQLiteDatabase db = helper.getWritableDatabase();
+        String whereClause = WeatherEntry._ID + " = ?";
+        String[] whereArgs = {String.valueOf(weatherHistory.getId())};
+
+        return db.delete(WeatherEntry.TABLE_WEATHERHISTORY, whereClause, whereArgs);
+    }
 
     private static List<WeatherHistory> parseToWeatherHistory(Cursor c){
         List<WeatherHistory> weatherHistoryList = new ArrayList<>();
@@ -167,17 +152,4 @@ public class DbHelper extends SQLiteOpenHelper{
 
         return weatherHistoryList;
     }
-
-    //region CRUD for City
-    public long insertCity(City city)
-    {
-        SQLiteDatabase db  = sInstance.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(CityEntry.COLUMN_NAME, city.getName());
-        values.put(CityEntry.COLUMN_COUNTRY, city.getCountry());
-
-        return db.insert(CityEntry.TABLE_CITY, null, values);
-    }
-    //endregion
-
 }
