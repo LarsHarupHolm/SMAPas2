@@ -36,7 +36,6 @@
             android:id="@+id/currentTextView" />
 
         <TextView
-            android:text="n/a"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/descriptionTextView"
@@ -44,7 +43,6 @@
             android:layout_alignStart="@+id/currentTextView" />
 
         <TextView
-            android:text="n/a"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/tempTextView"

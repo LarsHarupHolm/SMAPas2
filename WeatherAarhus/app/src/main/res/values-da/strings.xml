@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Vejr Aarhus Gruppe 02</string>
+    <string name="current">NUVÆRENDE:</string>
+    <string name="past_24_hours">SIDSTE 24 TIMER:</string>
+</resources>

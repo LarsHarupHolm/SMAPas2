@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mBoundService = ((BackgroundService.LocalBinder) service).getService();
+            refresh();
         }
         @Override
         public void onServiceDisconnected(ComponentName name) {
@@ -74,13 +75,12 @@ public class MainActivity extends AppCompatActivity {
         startBackgroundService();
         doBindService();
 
-        Toast.makeText(MainActivity.this, "Background service started", Toast.LENGTH_LONG).show();
-
         floatingActionButton = (FloatingActionButton) findViewById(R.id.floatingActionButton);
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 refresh();
+                Toast.makeText(MainActivity.this, "Checking for new weather info...", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -121,11 +121,9 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
     }
 
-
     private BroadcastReceiver onBackgroundServiceResult = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Toast.makeText(MainActivity.this, "Received new weather info from service", Toast.LENGTH_LONG).show();
             WeatherHistory curWeather = mBoundService.getCurrentWeather();
             setCurrentWeather(curWeather);
             updateWeatherRecordsList();
@@ -162,7 +160,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void refresh() {
         mBoundService.fetchWeatherInfo();
-        Toast.makeText(MainActivity.this, "Checking for new weather info...", Toast.LENGTH_SHORT).show();
     }
 
     private void startBackgroundService(){
@@ -212,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if (time != null) {
-                    time.setText(new SimpleDateFormat("HH:mm:ss").format(w.getCalendar().getTime()));
+                    time.setText(new SimpleDateFormat("HH:mm").format(w.getCalendar().getTime()));
                 }
             }
 

@@ -46,7 +46,7 @@ public class WeatherHistory {
         return cal;
     }
 
-    public String getTempString() { return String.format(Locale.getDefault(), "%.2f", getTempMetric()) + " °C"; }
+    public String getTempString() { return String.format(Locale.getDefault(), "%.0f", getTempMetric()) + " °C"; }
 
     public void setIconCode(String iconCode){ if(!Objects.equals(this.iconCode, iconCode)) {this.iconCode = iconCode;}}
     public String getIconCode(){return this.iconCode;}

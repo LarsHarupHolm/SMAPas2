@@ -72,7 +72,7 @@ public class DbHelper extends SQLiteOpenHelper{
 
     //region CRUD for WeatherHistory
 
-    public static long insertWeatherHistory(Context context, WeatherHistory weatherHistory)
+    public static void insertWeatherHistory(Context context, WeatherHistory weatherHistory)
     {
         DbHelper helper = new DbHelper(context);
         SQLiteDatabase db = helper.getWritableDatabase();
@@ -83,7 +83,8 @@ public class DbHelper extends SQLiteOpenHelper{
         values.put(WeatherEntry.COLUMN_DATE, weatherHistory.getUnixTime());
         values.put(WeatherEntry.COLUMN_ICONCODE, weatherHistory.getIconCode());
 
-        return db.insert(WeatherEntry.TABLE_WEATHERHISTORY, null, values);
+        db.insert(WeatherEntry.TABLE_WEATHERHISTORY, null, values);
+        db.close();
     }
 
     private static Cursor readWeatherHistory(Context context){

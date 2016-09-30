@@ -30,7 +30,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * Created by Kaare on 22-09-2016.
+ * Created by Kåre on 22-09-2016.
  * References:
  *  https://developer.android.com/training/basics/network-ops/connecting.html
  *  https://developer.android.com/reference/android/app/Service.html
@@ -113,7 +113,7 @@ public class BackgroundService extends Service {
             protected String doInBackground(Object[] params) {
                 String result = null;
                 InputStream inputStream;
-                int length = 1000;
+                int length = 500;
 
                 try {
                     URL url = new URL(stringUrl);
@@ -161,7 +161,7 @@ public class BackgroundService extends Service {
         try {
             JSONObject jsonObject = new JSONObject(jsonString);
             result.setUnixTime(jsonObject.getLong("dt"));
-
+            Log.e(TAG, "Got weather data with unix time: " + jsonObject.getLong("dt"));
             JSONArray weatherArray = jsonObject.getJSONArray("weather");
             JSONObject weather = weatherArray.getJSONObject(0);
             result.setDescription(weather.getString("main"));
