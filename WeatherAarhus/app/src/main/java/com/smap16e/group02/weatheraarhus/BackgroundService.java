@@ -56,6 +56,7 @@ public class BackgroundService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(TAG, "onStartCommand called");
         if(!started) {
             Timer timer = new Timer ();
             TimerTask recurringTask = new TimerTask () {
@@ -81,15 +82,18 @@ public class BackgroundService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
+        Log.d(TAG, "onBind called");
         return mBinder;
     }
 
     public WeatherHistory getCurrentWeather(){
+        Log.d(TAG, "getCurrentWeather called");
         Context context = getApplicationContext();
         return DbHelper.readCurrentWeatherHistory(context);
     }
 
     public List<WeatherHistory> getPastWeather(){
+        Log.d(TAG, "getPastWeather called");
         Context context = getApplicationContext();
         return DbHelper.readHistoricWeatherHistory(context);
     }
@@ -179,6 +183,7 @@ public class BackgroundService extends Service {
     }
 
     private void broadCastNewInformation(){
+        Log.d(TAG, "broadCastNewInformation called");
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction(BROADCAST_NEW_WEATHER_RESULT);
         LocalBroadcastManager.getInstance(this).sendBroadcast(broadcastIntent);
